@@ -167,7 +167,8 @@ stock void DumpOnAddress(Address addr, int len, int columns = 10)
 	{
 		chr = LoadFromAddress(addr + i, NumberType_Int8);
 		Format(buff, sizeof(buff), "%s %02X", buff, chr);
-		Format(buff2, sizeof(buff2), "%s%c", buff2, view_as<char>(chr > ' ' && chr != 0x7F && chr != 0xFF ? chr : '.'));
+		char printchr = (chr > ' ' && chr != 0x7F && chr != 0xFF) ? chr : '.';
+		Format(buff2, sizeof(buff2), "%s%c", buff2, printchr);
 		if(i % columns == columns - 1)
 		{
 			PrintToServer(__SNAME..."%s %s", buff, buff2);
