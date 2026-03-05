@@ -49,6 +49,31 @@ ConVar gRampBumpCount,
 float vec3_origin[3] = {0.0, 0.0, 0.0};
 bool gBasePlayerLoadedTooEarly;
 
+#if defined DEBUG_PROFILE
+#include "profiler"
+Profiler gProf;
+ArrayList gProfData;
+float gProfTime;
+
+void PROF_START()
+{
+	if(gProf)
+		gProf.Start();
+}
+
+void PROF_STOP(int idx)
+{
+	if(gProf)
+	{
+		gProf.Stop();
+		Prof_Check(idx);
+	}
+}
+
+#else
+stock void PROF_START() {}
+stock void PROF_STOP(int idx) {}
+#endif
 
 public void OnPluginStart()
 {
@@ -297,6 +322,7 @@ int TryPlayerMove(CGameMovement pThis, Vector pFirstDest, CGameTrace pFirstTrace
 					{
 						for(h = 0; h < 3; h++)
 						{
+							PROF_START();
 							offset[0] = offsets[i];
 							offset[1] = offsets[j];
 							offset[2] = offsets[h];
@@ -320,7 +346,8 @@ int TryPlayerMove(CGameMovement pThis, Vector pFirstDest, CGameTrace pFirstTrace
 							if(offset[2] < 0.0)
 								offset_maxs[2] /= 2.0;
 							PROF_STOP(0);
-							
+
+							PROF_START();
 							AddVectors(fixed_origin, offset, buff);
 							SubtractVectors(end, offset, offset);
 							if(gEngineVersion == Engine_CSGO)
@@ -334,13 +361,16 @@ int TryPlayerMove(CGameMovement pThis, Vector pFirstDest, CGameTrace pFirstTrace
 								AddVectors(VectorToArray(GetPlayerMaxsCSS(pThis, alloced_vector2)), offset_maxs, offset_maxs);
 							}
 							PROF_STOP(1);
-							
+
+							PROF_START();
 							ray.Init(buff, offset, offset_mins, offset_maxs);
 							PROF_STOP(2);
-							
+
+							PROF_START();
 							UTIL_TraceRay(ray, MASK_PLAYERSOLID, pThis, COLLISION_GROUP_PLAYER_MOVEMENT, pm);
 							PROF_STOP(3);
-							
+
+							PROF_START();
 							plane_normal = pm.plane.normal;
 							
 							if(FloatAbs(plane_normal.x) <= 1.0 && FloatAbs(plane_normal.y) <= 1.0 &&
@@ -464,6 +494,7 @@ int TryPlayerMove(CGameMovement pThis, Vector pFirstDest, CGameTrace pFirstTrace
 		if(numplanes == 1 && pThis.player.m_MoveType == MOVETYPE_WALK && pThis.player.m_hGroundEntity != view_as<Address>(-1))
 		{
 			Vector vec1 = Vector();
+			PROF_START();
 			if(planes[0][2] >= 0.7)
 			{
 				vec1.FromArray(original_velocity);
